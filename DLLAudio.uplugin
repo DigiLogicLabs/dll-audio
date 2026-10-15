@@ -1,0 +1,26 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "DLL Audio",
+	"Description": "Gameplay-tag driven audio event routing for Unreal Engine: semantic audio events, data-asset sound definitions, pluggable resolvers, listener-local playback budgets and visual debugging. Acoustic propagation, GAS and Mass integration modules are on the roadmap.",
+	"Category": "Digi Logic Labs",
+	"CreatedBy": "Digi Logic Labs LLC",
+	"CreatedByURL": "https://github.com/DigiLogicLabs",
+	"DocsURL": "https://github.com/DigiLogicLabs/dll-audio#readme",
+	"MarketplaceURL": "",
+	"SupportURL": "https://github.com/DigiLogicLabs/dll-audio/issues",
+	"EngineVersion": "5.7.0",
+	"CanContainContent": false,
+	"EnabledByDefault": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "DLLAudioRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
