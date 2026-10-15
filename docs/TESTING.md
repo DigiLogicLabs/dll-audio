@@ -29,6 +29,14 @@ UnrealEditor-Cmd.exe <Project>.uproject -ExecCmds="Automation RunTests DLLAudio;
 Add a test for every pure-logic change. Keep logic in plain C++ classes (`FDLLAudioRegistry`,
 `FDLLAudioDedupFilter`) so it is testable without a world.
 
+## 2a. Isolated host project (no adopter needed)
+
+To run the tests without enabling the plugin in a game (e.g. while that game's editor is open), make a
+content-only host: a folder with `Plugins/DLLAudio/` = the `BuildPlugin -Package` output (it carries editor
+binaries) and a `.uproject` containing only `"Plugins": [{ "Name": "DLLAudio", "Enabled": true }]`. Then
+run the headless command above against that `.uproject`. No compile happens, and the game project is untouched.
+A `LogDirectoryWatcher` warning about the missing `Content/` folder is expected.
+
 ## 3. In-game checklist (PIE)
 
 1. `dll.Audio.Debug 2` — markers + HUD appear only when events fire (no idle cost).
@@ -55,5 +63,5 @@ Add a test for every pure-logic change. Keep logic in plain C++ classes (`FDLLAu
 | Item | Status |
 |---|---|
 | Standalone build | 2026-10-15: `RunUAT BuildPlugin -TargetPlatforms=Win64` on UE 5.7 → 3× `Result: Succeeded`, `BUILD SUCCESSFUL`, 0 warnings in plugin sources |
-| Automation tests | Written (2); NOT YET RUN — owed in the reference adopter |
+| Automation tests | 2026-10-15: both PASS (`DLLAudio.Registry.DedupWindow`, `DLLAudio.Registry.Specificity`, `TEST COMPLETE. EXIT CODE: 0`) — run headless in an isolated content-only host project (§2a), UE 5.7 |
 | PIE / network matrix | UNTESTED for 0.1.0 |

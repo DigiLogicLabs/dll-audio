@@ -16,6 +16,8 @@ bottom. Mark unverified items **UNVERIFIED**. Promote anything that becomes a ru
   support in Valve's own releases.
 - 2026-10-15 — Resonance Audio ships in 5.7 marked Beta and is enabled by default, but upstream is not
   maintained. Don't build on it.
+- 2026-10-15 — Automation tests run green in an isolated content-only host project using the packaged
+  plugin binaries (TESTING §2a). That is the adopter-independent way to test; no game build needed.
 
 ## Traps
 
