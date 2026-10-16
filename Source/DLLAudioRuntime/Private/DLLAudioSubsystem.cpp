@@ -185,6 +185,10 @@ FDLLAudioResolution UDLLAudioSubsystem::ResolveAudioEvent(const FDLLAudioEvent& 
 	FDLLAudioResolution Resolution;
 	Resolution.Definition = Registry.Find(Event.EventTag, Event.ContextTags);
 
+	// Caller-chosen layers ride along as extra layers: resolvers may keep, rescale or drop them, and they only
+	// render if some definition is resolved (see FDLLAudioEvent::CallerLayers).
+	Resolution.ExtraLayers = Event.CallerLayers;
+
 	for (const TObjectPtr<UDLLAudioResolver>& Resolver : Resolvers)
 	{
 		if (Resolver && Resolver->Resolve(Event, Resolution))

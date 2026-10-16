@@ -51,7 +51,9 @@ void UMyAudioLibrary::PlayImpact(const UObject* Ctx, const FHitResult& Hit, USou
 
 If gameplay assets already carry sound fields (`ImpactSound` on a weapon config), don't delete them. Write a
 `UDLLAudioResolver` that adds the authored sound as a layer — or replaces the definition — and pass the
-authored asset through `FDLLAudioEvent::Parameters` or a context tag. Migrate data at your own pace.
+authored asset in `FDLLAudioEvent::CallerLayers` (0.2.0+). Caller layers seed `FDLLAudioResolution::ExtraLayers`,
+so a resolver can keep, rescale or drop them, and they render only when some definition resolves - a resolver
+can supply a fallback definition for that. Migrate data at your own pace.
 
 ## 5. AI hearing
 

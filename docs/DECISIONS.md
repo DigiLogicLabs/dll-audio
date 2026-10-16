@@ -62,3 +62,13 @@ is acceptable.
 **Reason:** Permissive like MIT, plus an explicit patent grant and contribution terms (section 5), which matters
 for a company-maintained project accepting outside PRs without a CLA.
 **Refs:** [DLL_PLUGIN_STANDARD.md](DLL_PLUGIN_STANDARD.md)
+
+## 2026-10-16 — Caller layers: a migration aid, never a bypass
+
+**Decision:** `FDLLAudioEvent::CallerLayers` lets a call site pass sounds it already resolved. They seed the
+resolution's `ExtraLayers`; they never render without a resolved definition.
+**Reason:** Adopters already hold sound fields on gameplay data (weapon configs). Re-authoring every one as a
+definition before adopting is a migration wall. Keeping rendering gated on a definition keeps data (attenuation,
+concurrency, budget priority) in charge of how anything plays.
+**Rejected:** Passing the asset as an object `FAudioParameter` (it would leak into every sound's parameter set),
+or a hidden resolver side channel (invisible in the event and the debug view).

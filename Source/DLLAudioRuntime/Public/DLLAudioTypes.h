@@ -14,6 +14,24 @@ class USoundBase;
 
 DLLAUDIORUNTIME_API DECLARE_LOG_CATEGORY_EXTERN(LogDLLAudio, Log, All);
 
+/** One rendered layer of a definition. A single logical event can render several layers. */
+USTRUCT(BlueprintType)
+struct DLLAUDIORUNTIME_API FDLLAudioLayer
+{
+	GENERATED_BODY()
+
+	/** Sound to play: SoundWave, SoundCue or MetaSoundSource. Soft so definitions don't pull audio into memory. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio")
+	TSoftObjectPtr<USoundBase> Sound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio", meta = (ClampMin = "0.0"))
+	float VolumeMultiplier = 1.0f;
+
+	/** Random pitch range; X = min, Y = max. (1,1) = no variation. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio")
+	FVector2D PitchRange = FVector2D(1.0, 1.0);
+};
+
 /**
  * A semantic audio event: WHAT happened, never WHICH asset plays.
  *
@@ -83,6 +101,18 @@ struct DLLAUDIORUNTIME_API FDLLAudioEvent
 	/** Extra parameters forwarded to the sound (MetaSound inputs) before it starts. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio")
 	TArray<FAudioParameter> Parameters;
+
+	/**
+	 * Layers the CALLER already chose. A migration aid for legacy call sites that hold a sound asset
+	 * (a weapon config's impact sound, say) and cannot yet express it as a definition.
+	 *
+	 * They seed FDLLAudioResolution::ExtraLayers, so resolvers see, keep, rescale or drop them, and they render
+	 * with the resolved definition's settings. They never render on their own: with no definition the event is
+	 * still NoDefinition. Prefer definitions for new content; this exists so adopting the plugin does not
+	 * require re-authoring every existing asset first.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio")
+	TArray<FDLLAudioLayer> CallerLayers;
 };
 
 /** How a definition is played. */
@@ -106,24 +136,6 @@ enum class EDLLAudioAcousticTier : uint8
 	Low,
 	Medium,
 	High
-};
-
-/** One rendered layer of a definition. A single logical event can render several layers. */
-USTRUCT(BlueprintType)
-struct DLLAUDIORUNTIME_API FDLLAudioLayer
-{
-	GENERATED_BODY()
-
-	/** Sound to play: SoundWave, SoundCue or MetaSoundSource. Soft so definitions don't pull audio into memory. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio")
-	TSoftObjectPtr<USoundBase> Sound;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio", meta = (ClampMin = "0.0"))
-	float VolumeMultiplier = 1.0f;
-
-	/** Random pitch range; X = min, Y = max. (1,1) = no variation. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio")
-	FVector2D PitchRange = FVector2D(1.0, 1.0);
 };
 
 /** Handle to a sustained audio state started through UDLLAudioSubsystem::StartAudioState. */

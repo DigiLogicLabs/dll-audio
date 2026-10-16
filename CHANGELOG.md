@@ -4,6 +4,16 @@ All notable changes to DLL Audio. Format: [Keep a Changelog](https://keepachange
 versioning: [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- `FDLLAudioEvent::CallerLayers`: layers a legacy call site already chose. They seed
+  `FDLLAudioResolution::ExtraLayers` and render only when a definition resolves. Additive; no migration needed.
+- Test `DLLAudio.Subsystem.CallerLayers`.
+### Changed
+- `FDLLAudioLayer` is declared before `FDLLAudioEvent` in `DLLAudioTypes.h` (header order only).
+### Verified
+- 2026-10-16, UE 5.7, in the reference adopter (MetalLegs): DebugGame and Development editor builds
+  `Result: Succeeded`; `DLLAudio.*` 3/3 pass headless. The 0.1.0 tests also passed 2026-10-15 in an
+  isolated host project.
 
 ## [0.1.0] - 2026-10-15
 ### Verified

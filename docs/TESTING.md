@@ -19,6 +19,7 @@ dependency on any adopting game. Only one UnrealBuildTool may run per engine ins
 |---|---|
 | `DLLAudio.Registry.Specificity` | Most-specific context match, generic fallback, unregister |
 | `DLLAudio.Registry.DedupWindow` | Key 0 bypass, window, per-tag keys, pruning |
+| `DLLAudio.Subsystem.CallerLayers` | Caller layers seed ExtraLayers; never stand in for a missing definition |
 
 Run in editor: *Tools → Session Frontend → Automation*, filter `DLLAudio`. Headless:
 
@@ -63,5 +64,5 @@ A `LogDirectoryWatcher` warning about the missing `Content/` folder is expected.
 | Item | Status |
 |---|---|
 | Standalone build | 2026-10-15: `RunUAT BuildPlugin -TargetPlatforms=Win64` on UE 5.7 → 3× `Result: Succeeded`, `BUILD SUCCESSFUL`, 0 warnings in plugin sources |
-| Automation tests | 2026-10-15: both PASS (`DLLAudio.Registry.DedupWindow`, `DLLAudio.Registry.Specificity`, `TEST COMPLETE. EXIT CODE: 0`) — run headless in an isolated content-only host project (§2a), UE 5.7 |
+| Automation tests | 2026-10-15: both PASS (`DLLAudio.Registry.DedupWindow`, `DLLAudio.Registry.Specificity`, `TEST COMPLETE. EXIT CODE: 0`) — run headless in an isolated content-only host project (§2a), UE 5.7. 2026-10-16: 3/3 PASS (adds `DLLAudio.Subsystem.CallerLayers`) headless in the reference adopter |
 | PIE / network matrix | UNTESTED for 0.1.0 |
