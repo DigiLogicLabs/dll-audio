@@ -3,6 +3,9 @@ applyTo: "Source/**/*.{h,cpp,cs}"
 ---
 # C++ rules (DLL Audio)
 
+Shared rules for every dll-* plugin: [docs/DLL_PLUGIN_STANDARD.md](../../docs/DLL_PLUGIN_STANDARD.md#coding-rules-shared-by-every-dll--plugin).
+The rules below are specific to this plugin.
+
 - **Dependencies:** `DLLAudioRuntime.Build.cs` is a contract. Adding a module dependency there is a
   breaking architectural change — put it in a new optional module instead (see
   `.github/prompts/add-integration-module.prompt.md`).
