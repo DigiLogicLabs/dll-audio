@@ -7,6 +7,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "DLLAudioTypes.h"
 #include "DLLAudioRegistry.h"
+#include "DLLAudioBurst.h"
 #include "DLLAudioResolver.h"
 #include "DLLAudioSubsystem.generated.h"
 
@@ -107,6 +108,7 @@ public:
 		int32 CulledBudget = 0;
 		int32 PendingLoad = 0;
 		int32 NoListener = 0;
+		int32 Merged = 0;
 		int32 ActiveStates = 0;
 	};
 	const FStats& GetStats() const { return Stats; }
@@ -116,6 +118,10 @@ private:
 	bool GetLocalListenerLocations(TArray<FVector>& OutLocations) const;
 	bool IsWithinAudibleDistance(const UDLLAudioDefinition& Definition, const FDLLAudioEvent& Event) const;
 	bool AdmitOneShotBudget(const UDLLAudioDefinition& Definition);
+	bool IsBurstMergeActive(const UDLLAudioDefinition& Definition) const;
+	void ApplyBurstMerge(const UDLLAudioDefinition& Definition, const FDLLAudioBurstTracker::FMergeResult& Merge) const;
+	void RecordBurstVoices(const UDLLAudioDefinition& Definition, const FVector& Location, const TArray<UAudioComponent*>& Components,
+		const void* Variant);
 	bool AreLayersLoaded(const FDLLAudioResolution& Resolution) const;
 	void RequestLayerLoad(const TArray<FDLLAudioLayer>& Layers);
 	TArray<UAudioComponent*> RenderLayers(const FDLLAudioEvent& Event, const FDLLAudioResolution& Resolution, bool bSustained);
@@ -131,6 +137,7 @@ private:
 
 	FDLLAudioRegistry Registry;
 	FDLLAudioDedupFilter DedupFilter;
+	FDLLAudioBurstTracker BurstTracker;
 	FStats Stats;
 
 	/** Keeps registered definitions / libraries alive. */

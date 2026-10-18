@@ -50,6 +50,10 @@ stimuli there. Sinks fire even where nothing is rendered.
 - Definitions are small; sounds are soft references, preloaded per definition (`bPreloadSounds`) only on
   machines that can hear.
 - The registry lookup is a map hit per tag level; resolution cost is O(definitions for that tag).
+- Burst merging (opt-in per definition) runs after the distance cull and before the budget, so an absorbed
+  occurrence costs no component and no budget slot. Order: dedup -> listener -> resolve -> distance -> **burst** ->
+  budget -> load -> render. Bursts are keyed by (definition, grid cell), use a fixed window, and are pruned on
+  query. A merge only joins a voice that is still playing; sinks still get every occurrence (`Merged`).
 
 ## Planned modules (see ROADMAP.md)
 

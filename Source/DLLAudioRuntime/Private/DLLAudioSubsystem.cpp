@@ -29,6 +29,15 @@ namespace DLLAudioPrivate
 	static const FName ParamIntensity(TEXT("Intensity"));
 	static const FName ParamSpeed(TEXT("Speed"));
 	static const FName ParamSeed(TEXT("Seed"));
+	static const FName ParamBurstCount(TEXT("BurstCount"));
+
+	/** -1 = each definition's BurstMerge decides, 0 = burst merging off everywhere (A/B against plain playback). */
+	static int32 GBurstMergeMode = -1;
+	static FAutoConsoleVariableRef CVarBurstMerge(
+		TEXT("dll.Audio.BurstMerge"),
+		GBurstMergeMode,
+		TEXT("DLL Audio burst merging. -1 = per definition (UDLLAudioDefinition::BurstMerge), 0 = off everywhere."),
+		ECVF_Cheat);
 
 	/** On-screen key range reserved for this system. */
 	static constexpr int32 HUDKeyBase = 0x0D11A000;
@@ -97,6 +106,7 @@ void UDLLAudioSubsystem::Deinitialize()
 		}
 	}
 	ActiveStates.Reset();
+	BurstTracker.Reset();
 
 	if (UWorld* World = GetWorld())
 	{
@@ -238,6 +248,27 @@ EDLLAudioEmitResult UDLLAudioSubsystem::EmitAudioEvent(const FDLLAudioEvent& Eve
 		return Finish(Event, EDLLAudioEmitResult::CulledDistance);
 	}
 
+	// Burst merging sits before the budget: an absorbed occurrence costs no voice and no budget slot.
+	const bool bBurstMerge = IsBurstMergeActive(*Definition);
+	const FVector SourceLocation = Event.AttachComponent ? Event.AttachComponent->GetSocketLocation(Event.AttachSocket) : Event.Location;
+	// Caller layers share one definition across many sounds: only the same sound merges into the same voices.
+	const void* BurstVariant = Event.CallerLayers.IsEmpty() ? nullptr : Event.CallerLayers[0].Sound.Get();
+	if (bBurstMerge)
+	{
+		FDLLAudioBurstTracker::FMergeResult Merge;
+		if (BurstTracker.TryMerge(Definition, SourceLocation, Definition->BurstMerge, World->GetTimeSeconds(), Merge, BurstVariant))
+		{
+			ApplyBurstMerge(*Definition, Merge);
+#if ENABLE_DRAW_DEBUG
+			if (IsVisualDebugEnabled())
+			{
+				DrawDebugLine(World, SourceLocation, Merge.Origin, FColor::Cyan, false, GetDefault<UDLLAudioSettings>()->DebugEventDrawDuration);
+			}
+#endif
+			return Finish(Event, EDLLAudioEmitResult::Merged);
+		}
+	}
+
 	if (!AdmitOneShotBudget(*Definition))
 	{
 		return Finish(Event, EDLLAudioEmitResult::CulledBudget);
@@ -251,7 +282,11 @@ EDLLAudioEmitResult UDLLAudioSubsystem::EmitAudioEvent(const FDLLAudioEvent& Eve
 		return Finish(Event, EDLLAudioEmitResult::PendingLoad);
 	}
 
-	RenderLayers(Event, Resolution, /*bSustained*/ false);
+	const TArray<UAudioComponent*> Components = RenderLayers(Event, Resolution, /*bSustained*/ false);
+	if (bBurstMerge)
+	{
+		RecordBurstVoices(*Definition, SourceLocation, Components, BurstVariant);
+	}
 	return Finish(Event, EDLLAudioEmitResult::Rendered);
 }
 
@@ -370,6 +405,7 @@ EDLLAudioEmitResult UDLLAudioSubsystem::Finish(const FDLLAudioEvent& Event, EDLL
 	case EDLLAudioEmitResult::CulledBudget:   ++Stats.CulledBudget; break;
 	case EDLLAudioEmitResult::PendingLoad:    ++Stats.PendingLoad; break;
 	case EDLLAudioEmitResult::NoListener:     ++Stats.NoListener; break;
+	case EDLLAudioEmitResult::Merged:         ++Stats.Merged; break;
 	}
 
 	DrawEventDebug(Event, Result);
@@ -460,6 +496,59 @@ bool UDLLAudioSubsystem::AdmitOneShotBudget(const UDLLAudioDefinition& Definitio
 		return true;
 	}
 	return false;
+}
+
+// ============================================================================
+// Burst merging
+// ============================================================================
+
+bool UDLLAudioSubsystem::IsBurstMergeActive(const UDLLAudioDefinition& Definition) const
+{
+	return DLLAudioPrivate::GBurstMergeMode != 0
+		&& Definition.BurstMerge.bEnabled
+		&& Definition.PlaybackKind == EDLLAudioPlaybackKind::OneShot;
+}
+
+void UDLLAudioSubsystem::ApplyBurstMerge(const UDLLAudioDefinition& Definition, const FDLLAudioBurstTracker::FMergeResult& Merge) const
+{
+	const FDLLAudioBurstMerge& Settings = Definition.BurstMerge;
+	const bool bGrowVolume = Settings.VolumeGrowthPerMergedEvent > 0.0f;
+	const float VolumeScale = FDLLAudioBurstTracker::VolumeScaleFor(Settings, Merge.MergedCount);
+
+	for (const FDLLAudioBurstTracker::FVoice& Voice : Merge.LiveVoices)
+	{
+		UAudioComponent* Component = Voice.Component.Get();
+		if (!Component)
+		{
+			continue;
+		}
+		if (bGrowVolume)
+		{
+			Component->SetVolumeMultiplier(Voice.BaseVolume * VolumeScale);
+		}
+		if (Settings.bSendBurstParameters)
+		{
+			Component->SetIntParameter(DLLAudioPrivate::ParamBurstCount, Merge.BurstCount);
+		}
+	}
+}
+
+void UDLLAudioSubsystem::RecordBurstVoices(const UDLLAudioDefinition& Definition, const FVector& Location, const TArray<UAudioComponent*>& Components,
+	const void* Variant)
+{
+	const UWorld* World = GetWorld();
+	if (!World || Components.IsEmpty())
+	{
+		return;
+	}
+
+	TArray<float> BaseVolumes;
+	BaseVolumes.Reserve(Components.Num());
+	for (const UAudioComponent* Component : Components)
+	{
+		BaseVolumes.Add(Component ? Component->VolumeMultiplier : 1.0f);
+	}
+	BurstTracker.AddVoices(&Definition, Location, Definition.BurstMerge, World->GetTimeSeconds(), Components, BaseVolumes, Variant);
 }
 
 // ============================================================================
@@ -579,6 +668,11 @@ UAudioComponent* UDLLAudioSubsystem::RenderLayer(const FDLLAudioEvent& Event, co
 			Parameters.Emplace(DLLAudioPrivate::ParamSeed, Event.VariationSeed);
 		}
 	}
+	if (!bSustained && IsBurstMergeActive(Definition) && Definition.BurstMerge.bSendBurstParameters)
+	{
+		// A voice starts as a burst of one; merges raise it while it plays.
+		Parameters.Emplace(DLLAudioPrivate::ParamBurstCount, 1);
+	}
 	if (!Parameters.IsEmpty())
 	{
 		Component->SetParameters(MoveTemp(Parameters));
@@ -622,6 +716,7 @@ void UDLLAudioSubsystem::DrawEventDebug(const FDLLAudioEvent& Event, EDLLAudioEm
 	case EDLLAudioEmitResult::Rendered:     Color = FColor::Green; break;
 	case EDLLAudioEmitResult::NoDefinition: Color = FColor::Red; break;
 	case EDLLAudioEmitResult::Deduplicated: Color = FColor::Purple; break;
+	case EDLLAudioEmitResult::Merged:       Color = FColor::Cyan; break;
 	default:                                Color = FColor::Orange; break;
 	}
 
@@ -677,4 +772,7 @@ void UDLLAudioSubsystem::DrawDebugHUD()
 		TEXT("Culled dist %d | budget %d | pending load %d | dedup %d"), Stats.CulledDistance, Stats.CulledBudget, Stats.PendingLoad, Stats.Deduplicated));
 	GEngine->AddOnScreenDebugMessage(Key++, Display, Stats.NoDefinition > 0 ? FColor::Red : FColor::White, FString::Printf(
 		TEXT("No definition %d | No listener %d"), Stats.NoDefinition, Stats.NoListener));
+	GEngine->AddOnScreenDebugMessage(Key++, Display, FColor::Cyan, FString::Printf(
+		TEXT("Burst merged %d | open bursts %d%s"), Stats.Merged, BurstTracker.NumBursts(),
+		DLLAudioPrivate::GBurstMergeMode == 0 ? TEXT(" (OFF: dll.Audio.BurstMerge 0)") : TEXT("")));
 }

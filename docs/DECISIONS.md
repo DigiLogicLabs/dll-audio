@@ -72,3 +72,14 @@ definition before adopting is a migration wall. Keeping rendering gated on a def
 concurrency, budget priority) in charge of how anything plays.
 **Rejected:** Passing the asset as an object `FAudioParameter` (it would leak into every sound's parameter set),
 or a hidden resolver side channel (invisible in the event and the debug view).
+
+## 2026-10-16 — Burst merging: leading edge, merge only into live voices
+
+**Decision:** Opt-in per definition (`BurstMerge`). The first `MaxVoicesPerBurst` occurrences in a (definition,
+grid cell) render immediately; later ones inside a fixed window grow those live voices (volume, `BurstCount`)
+and report `Merged`. A merge never targets a finished voice; the occurrence renders instead.
+**Reason:** Large crowds and chain reactions otherwise either stack identical voices or lose all but the budget's
+survivors. Leading edge keeps the core rule that a late one-shot is worse than a missing one. Live-voice-only keeps
+merging from ever making the world quieter than one voice per burst, so adopters can use it on "never drop" sounds.
+**Rejected:** Collect-then-play windows (adds latency to every first hit); hashing cells into a uint64 key (collisions
+would merge unrelated places); a sliding window (an endless crowd would never open a new voice).

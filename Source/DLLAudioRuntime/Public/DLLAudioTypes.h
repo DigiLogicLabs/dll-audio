@@ -115,6 +115,58 @@ struct DLLAUDIORUNTIME_API FDLLAudioEvent
 	TArray<FDLLAudioLayer> CallerLayers;
 };
 
+/**
+ * Burst merging: many occurrences of the same definition close together in space and time sound like ONE bigger
+ * occurrence instead of a stack of identical voices (or a few survivors after the budget drops the rest).
+ *
+ * Leading edge, never delayed: the first MaxVoicesPerBurst occurrences in a cell render normally the moment they
+ * happen. Later occurrences inside the window are absorbed into those live voices - their volume grows by
+ * VolumeGrowthPerMergedEvent each (capped at MaxVolumeScale) and, when bSendBurstParameters is on, they receive a
+ * "BurstCount" parameter a MetaSound can use to thicken the sound. Absorbed events report EDLLAudioEmitResult::Merged
+ * and still reach every sink (AI hearing sees each one).
+ *
+ * Never silences: an occurrence only merges into a voice that is still playing. If every voice of the burst has
+ * finished (or none rendered - budget, pending load), the occurrence renders as a new voice.
+ *
+ * One-shots only. Off by default; console variable dll.Audio.BurstMerge 0 turns it off everywhere for A/B tests.
+ */
+USTRUCT(BlueprintType)
+struct DLLAUDIORUNTIME_API FDLLAudioBurstMerge
+{
+	GENERATED_BODY()
+
+	/** Opt in for this definition. Off = every occurrence renders on its own, exactly as without this feature. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio")
+	bool bEnabled = false;
+
+	/** How long after a burst's first voice later occurrences can join it (seconds). The window does not slide. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio", meta = (EditCondition = "bEnabled", ClampMin = "0.01", Units = "s"))
+	float WindowSeconds = 0.15f;
+
+	/**
+	 * Occurrences merge only inside the same world-space grid cell of this size (cm). Larger = more merging, less
+	 * positional detail. Two occurrences either side of a cell edge stay separate.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio", meta = (EditCondition = "bEnabled", ClampMin = "1.0", Units = "cm"))
+	float CellSize = 1000.0f;
+
+	/** Occurrences per burst that render as their own voice before later ones start merging. 1 = one voice per burst. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio", meta = (EditCondition = "bEnabled", ClampMin = "1"))
+	int32 MaxVoicesPerBurst = 1;
+
+	/** Volume added to the burst's live voices per merged occurrence, as a fraction of their own volume. 0 = no growth. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio", meta = (EditCondition = "bEnabled", ClampMin = "0.0"))
+	float VolumeGrowthPerMergedEvent = 0.0f;
+
+	/** Ceiling for the volume growth, as a multiple of each voice's own volume. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio", meta = (EditCondition = "bEnabled", ClampMin = "1.0"))
+	float MaxVolumeScale = 2.0f;
+
+	/** Send "BurstCount" (int: occurrences in the burst so far, voices included) to the live voices on every merge. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLL Audio", meta = (EditCondition = "bEnabled"))
+	bool bSendBurstParameters = true;
+};
+
 /** How a definition is played. */
 UENUM(BlueprintType)
 enum class EDLLAudioPlaybackKind : uint8
@@ -166,5 +218,7 @@ enum class EDLLAudioEmitResult : uint8
 	/** Sound not loaded yet; an async load was requested. */
 	PendingLoad,
 	/** No local listener (dedicated server, or audio disabled). Sinks still receive the event. */
-	NoListener
+	NoListener,
+	/** Absorbed into a live voice of the same definition nearby (UDLLAudioDefinition::BurstMerge). Audible through that voice. */
+	Merged
 };

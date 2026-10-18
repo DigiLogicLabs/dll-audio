@@ -77,6 +77,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Budget")
 	bool bPreloadSounds = true;
 
+	/**
+	 * Merge many nearby occurrences into fewer, bigger voices (crowds, barrel chains, volleys). Off by default.
+	 * Merged occurrences don't consume the per-frame budget. One-shots only. See FDLLAudioBurstMerge.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Budget")
+	FDLLAudioBurstMerge BurstMerge;
+
 	/** Acoustic processing requested from the (future) acoustics module. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Acoustics")
 	EDLLAudioAcousticTier AcousticTier = EDLLAudioAcousticTier::None;

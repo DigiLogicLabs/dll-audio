@@ -95,6 +95,7 @@ Release column maps to [ROADMAP.md](ROADMAP.md).
 |---|---|---|---|
 | S1 | No Tick in the core. | P0 | 0.1 ✅ |
 | S2 | Aggregate crowd emitters per spatial cell (`DLLAudioMass`). | P1 | 0.5 |
+| S2a | One-shot burst merging per (definition, cell, window) in the core, opt-in. First step toward S2. | P1 | Unreleased (built, PIE untested) |
 | S3 | Component pooling + emitter LOD. | P1 | 0.5 |
 | S4 | Benchmark map + Insights trace markers. | P1 | 0.5 |
 

@@ -31,3 +31,6 @@ bottom. Mark unverified items **UNVERIFIED**. Promote anything that becomes a ru
   run in any project. Child tags need project config and would make tests adopter-specific.
 - **Libraries must be cooked.** Settings hold soft refs; add the `DLLAudioDefinitionLibrary` primary asset
   type or Always Cook, or packaged builds register nothing (a warning is logged).
+- 2026-10-16: Burst merging lives in the core because it needs only Engine (UAudioComponent volume + parameters).
+  Crowd *beds* (S2) still need MassEntity and stay a separate module. Merged occurrences reach sinks like any other
+  result - AI hearing must not treat `Merged` as "not heard".

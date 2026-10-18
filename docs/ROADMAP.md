@@ -31,6 +31,8 @@ Each phase is shippable on its own and gated on the previous one being used in a
 - [ ] Provider interface; Steam Audio provider evaluated separately
 
 ## 0.5 — Scale
+- [x] One-shot burst merging in the core (`UDLLAudioDefinition::BurstMerge`), built 2026-10-16 ahead of 0.5;
+      PIE untested
 - [ ] `DLLAudioMass`: aggregate crowd emitters (size, speed, aggression, % attacking) with near-field
       hand-off to individual emitters
 - [ ] Component pooling, emitter LOD, perceptual priority weighting

@@ -20,6 +20,10 @@ dependency on any adopting game. Only one UnrealBuildTool may run per engine ins
 | `DLLAudio.Registry.Specificity` | Most-specific context match, generic fallback, unregister |
 | `DLLAudio.Registry.DedupWindow` | Key 0 bypass, window, per-tag keys, pruning |
 | `DLLAudio.Subsystem.CallerLayers` | Caller layers seed ExtraLayers; never stand in for a missing definition |
+| `DLLAudio.Burst.MergeWindowAndCell` | Same definition + cell + window merges; other cell/definition/expired renders; pruning |
+| `DLLAudio.Burst.NeverMergesIntoFinishedVoice` | A finished voice is never merged into; the next occurrence starts a new burst |
+| `DLLAudio.Burst.MaxVoicesAndVolumeScale` | MaxVoicesPerBurst, BurstCount counts occurrences not layers, volume growth cap |
+| `DLLAudio.Burst.DifferentSoundsNeverMerge` | One definition, two caller sounds in one cell: only the same sound merges |
 
 Run in editor: *Tools → Session Frontend → Automation*, filter `DLLAudio`. Headless:
 
@@ -66,3 +70,4 @@ A `LogDirectoryWatcher` warning about the missing `Content/` folder is expected.
 | Standalone build | 2026-10-15: `RunUAT BuildPlugin -TargetPlatforms=Win64` on UE 5.7 → 3× `Result: Succeeded`, `BUILD SUCCESSFUL`, 0 warnings in plugin sources |
 | Automation tests | 2026-10-15: both PASS (`DLLAudio.Registry.DedupWindow`, `DLLAudio.Registry.Specificity`, `TEST COMPLETE. EXIT CODE: 0`) — run headless in an isolated content-only host project (§2a), UE 5.7. 2026-10-16: 3/3 PASS (adds `DLLAudio.Subsystem.CallerLayers`) headless in the reference adopter |
 | PIE / network matrix | UNTESTED for 0.1.0 |
+| Burst merging (Unreleased) | 2026-10-16: Development editor build green in the reference adopter; `DLLAudio.*` 6/6 PASS headless (EXIT CODE 0). Standalone BuildPlugin not re-run. PIE UNTESTED. Check: author a definition with `BurstMerge.bEnabled`, fire 10 of it in one spot inside 0.15 s with `dll.Audio.Debug 2` -> HUD "Burst merged" climbs, cyan lines point at the first voice, `MaxVoicesPerBurst` components exist; `dll.Audio.BurstMerge 0` -> every occurrence renders |
