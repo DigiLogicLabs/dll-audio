@@ -1,7 +1,7 @@
 # DLL Audio
 
 **Gameplay-tag driven audio event routing for Unreal Engine 5.** Open source (Apache-2.0) by
-[Digi Logic Labs](https://github.com/DigiLogicLabs). Built for, and developed alongside, our own UE games.
+[Digi Logic Labs](https://digilogiclabs.com) ([GitHub](https://github.com/DigiLogicLabs)). Built for, and developed alongside, our own UE games.
 
 > **Status: 0.1.0 (beta) — foundation only.** The core event router is here. Acoustic propagation,
 > GAS and Mass integration are on the [roadmap](docs/ROADMAP.md). APIs may change before 1.0.
@@ -93,4 +93,11 @@ Part of the Digi Logic Labs `dll-*` plugin family — see [docs/DLL_PLUGIN_STAND
 
 ## License
 
-[Apache License 2.0](LICENSE). Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Free and open source under the [Apache License 2.0](LICENSE) (see also [NOTICE](NOTICE)). In plain words: use it
+in any project, personal or commercial, change it, ship it in your games and redistribute it, with no fees or
+royalties. When you redistribute the plugin or a modified copy, keep the `LICENSE` and `NOTICE` text with it (for a
+shipped game, its credits or documentation is enough) and mark the files you changed. The license includes a patent
+grant for this code; it does not grant use of the Digi Logic Labs name or logos, and the software comes without
+warranty. Contributions welcome - see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+More from Digi Logic Labs: [digilogiclabs.com](https://digilogiclabs.com).

@@ -20,6 +20,8 @@ versioning: [SemVer](https://semver.org/).
   `FDLLAudioResolution::ExtraLayers` and render only when a definition resolves. Additive; no migration needed.
 - Test `DLLAudio.Subsystem.CallerLayers`.
 ### Changed
+- Docs: README, `NOTICE` and the `.uplugin` `CreatedByURL` link [digilogiclabs.com](https://digilogiclabs.com); the README license
+  section explains Apache-2.0 in plain words (free for any use, including commercial; keep LICENSE/NOTICE).
 - `FDLLAudioLayer` is declared before `FDLLAudioEvent` in `DLLAudioTypes.h` (header order only).
 ### Verified
 - 2026-10-18, UE 5.7, reference adopter PIE: burst merging - one gameplay cue fired 6x in one spot through a
