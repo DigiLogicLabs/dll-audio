@@ -20,6 +20,8 @@ versioning: [SemVer](https://semver.org/).
   `FDLLAudioResolution::ExtraLayers` and render only when a definition resolves. Additive; no migration needed.
 - Test `DLLAudio.Subsystem.CallerLayers`.
 ### Changed
+- Community files: `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `SECURITY.md` (private reporting), issue-template
+  `config.yml`, and fork → build → test → pull request steps in `CONTRIBUTING.md`.
 - Docs: README, `NOTICE` and the `.uplugin` `CreatedByURL` link [digilogiclabs.com](https://digilogiclabs.com); the README license
   section explains Apache-2.0 in plain words (free for any use, including commercial; keep LICENSE/NOTICE).
 - `FDLLAudioLayer` is declared before `FDLLAudioEvent` in `DLLAudioTypes.h` (header order only).
