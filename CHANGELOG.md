@@ -25,6 +25,10 @@ versioning: [SemVer](https://semver.org/).
 - Docs: README, `NOTICE` and the `.uplugin` `CreatedByURL` link [digilogiclabs.com](https://digilogiclabs.com); the README license
   section explains Apache-2.0 in plain words (free for any use, including commercial; keep LICENSE/NOTICE).
 - `FDLLAudioLayer` is declared before `FDLLAudioEvent` in `DLLAudioTypes.h` (header order only).
+### Fixed
+- `DLLAudioBurst.h` includes `UObject/WeakObjectPtr.h`: the standalone `BuildPlugin` failed with C2079 (undefined
+  `FWeakObjectPtr`); it only compiled inside a game whose other headers pulled the full type in first.
+
 ### Verified
 - 2026-10-18, UE 5.7, reference adopter PIE: burst merging - one gameplay cue fired 6x in one spot through a
   routed family played 2 voices at volume 1.2; with `dll.Audio.BurstMerge 0` it played 6 at 1.0 (voice count by

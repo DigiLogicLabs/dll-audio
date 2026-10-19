@@ -34,3 +34,6 @@ bottom. Mark unverified items **UNVERIFIED**. Promote anything that becomes a ru
 - 2026-10-16: Burst merging lives in the core because it needs only Engine (UAudioComponent volume + parameters).
   Crowd *beds* (S2) still need MassEntity and stay a separate module. Merged occurrences reach sinks like any other
   result - AI hearing must not treat `Merged` as "not heard".
+- 2026-10-19: `UObject/WeakObjectPtrTemplates.h` only forward-declares `FWeakObjectPtr`. A header holding a
+  `TWeakObjectPtr` member must include `UObject/WeakObjectPtr.h`. Only the standalone `BuildPlugin` (non-unity files)
+  catches it - a game build hides it.
